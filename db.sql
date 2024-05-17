@@ -54,5 +54,6 @@ INSERT INTO app_public.catalog_content (catalog_parent_id, tab_index, content_pa
 INSERT INTO app_public.catalog_content (catalog_parent_id, tab_index, content_parent_id, content_type) VALUES ('ca-1', 1, 'co-1', 'collection');
 INSERT INTO app_public.catalog_content (catalog_parent_id, tab_index, content_parent_id, content_type) VALUES ('ca-1', 1, 'co-2', 'collection');
 INSERT INTO app_public.catalog_content (catalog_parent_id, tab_index, content_parent_id, content_type) VALUES ('ca-1', 1, 'meta-2', 'meta');
+-- non existing weak linked data
 INSERT INTO app_public.catalog_content (catalog_parent_id, tab_index, content_parent_id, content_type) VALUES ('ca-1', 1, 'co-7', 'collection');
 INSERT INTO app_public.catalog_content (catalog_parent_id, tab_index, content_parent_id, content_type) VALUES ('ca-1', 1, 'meta-10', 'meta');
