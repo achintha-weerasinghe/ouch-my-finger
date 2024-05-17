@@ -1,6 +1,12 @@
 import { PgPolymorphicTypeMap, pgPolymorphic, withPgClient } from 'postgraphile/@dataplan/pg';
 import { gql, makeExtendSchemaPlugin } from 'postgraphile/utils';
 
+/**
+ * TODO:
+ * Instead of manually defining `union Content = MovieCollection | SeasonCollection | Meta`
+ * I tried to use `unionMember` which gave me an error saying `interface cannot be an union type`
+ */
+
 export const RootQueryExtensionsPlugin: GraphileConfig.Plugin = makeExtendSchemaPlugin((build) => {
     const {
         sql,
