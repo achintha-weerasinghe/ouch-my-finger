@@ -12,5 +12,6 @@ to protect your fingers from the sharp edges!
   yarn
   ```
 
-- Clean the database and run the `db.sql` to prepare the database
+- Create a database `outch-my-finger` and have a schema named `app_public`
+- Run the `db.sql` to prepare the database
 - Run `yarn start` to star the server
