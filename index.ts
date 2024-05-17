@@ -1,5 +1,5 @@
 // Run this with `npx ts-node --esm postgraphile-express-typescript-example.mts`
-import preset from "./graphile.config.mjs";
+import preset from "./graphile.config";
 import { postgraphile } from "postgraphile";
 
 // Our PostGraphile instance:
@@ -13,7 +13,7 @@ const serv = pgl.createServ(grafserv);
 
 const app = express();
 const server = createServer(app);
-server.on("error", () => {});
+server.on("error", () => { });
 serv.addTo(app, server).catch((e) => {
   console.error(e);
   process.exit(1);

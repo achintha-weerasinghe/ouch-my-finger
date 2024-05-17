@@ -1,0 +1,74 @@
+type SeasonCollection implements ICollection {
+  id: UUID!
+  title: String!
+  type: String!
+  countEpisode: Int
+}
+
+interface ICollection {
+  id: UUID!
+  title: String!
+  type: String!
+}
+
+"""
+A universally unique identifier as defined by [RFC 4122](https://tools.ietf.org/html/rfc4122).
+"""
+scalar UUID
+
+type MovieCollection implements ICollection {
+  id: UUID!
+  title: String!
+  type: String!
+  duration: String
+}
+
+"""The root query type which gives access points into the data universe."""
+type Query {
+  collections: ICollectionsConnection
+  collectionById(id: String!): ICollection
+}
+
+"""A connection to a list of `ICollection` values."""
+type ICollectionsConnection {
+  """A list of `ICollection` objects."""
+  nodes: [ICollection]!
+
+  """
+  A list of edges which contains the `ICollection` and cursor to aid in pagination.
+  """
+  edges: [ICollectionsEdge]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """The count of *all* `ICollection` you could get from the connection."""
+  totalCount: Int!
+}
+
+"""A `ICollection` edge in the connection."""
+type ICollectionsEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `ICollection` at the end of the edge."""
+  node: ICollection
+}
+
+"""A location in a connection that can be used for resuming pagination."""
+scalar Cursor
+
+"""Information about pagination in a connection."""
+type PageInfo {
+  """When paginating forwards, are there more items?"""
+  hasNextPage: Boolean!
+
+  """When paginating backwards, are there more items?"""
+  hasPreviousPage: Boolean!
+
+  """When paginating backwards, the cursor to continue."""
+  startCursor: Cursor
+
+  """When paginating forwards, the cursor to continue."""
+  endCursor: Cursor
+}
