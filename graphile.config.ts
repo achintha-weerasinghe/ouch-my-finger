@@ -9,7 +9,7 @@ import PersistedPlugin from "@grafserv/persisted";
 import { PgOmitArchivedPlugin } from "@graphile-contrib/pg-omit-archived";
 import { PgSimplifyInflectionPreset } from "@graphile/simplify-inflection";
 import { NodePlugin } from "postgraphile/graphile-build";
-import { RootQueryExtensionsPlugin } from "./root-query-extensions";
+import { RootQueryExtensionsPlugin } from "./query-extensions";
 import { PgAggregatesAddConnectionAggregatesPlugin } from '@graphile/pg-aggregates/dist/AddConnectionAggregatesPlugin';
 import { PgAggregatesAddConnectionGroupedAggregatesPlugin } from '@graphile/pg-aggregates/dist/AddConnectionGroupedAggregatesPlugin';
 import { PgConnectionArgOrderByDefaultValuePlugin } from 'postgraphile/graphile-build-pg';

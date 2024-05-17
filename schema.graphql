@@ -1,23 +1,18 @@
 type SeasonCollection implements ICollection {
-  id: UUID!
+  id: String!
   title: String!
   type: String!
   countEpisode: Int
 }
 
 interface ICollection {
-  id: UUID!
+  id: String!
   title: String!
   type: String!
 }
 
-"""
-A universally unique identifier as defined by [RFC 4122](https://tools.ietf.org/html/rfc4122).
-"""
-scalar UUID
-
 type MovieCollection implements ICollection {
-  id: UUID!
+  id: String!
   title: String!
   type: String!
   duration: String
@@ -27,6 +22,61 @@ type MovieCollection implements ICollection {
 type Query {
   collections: ICollectionsConnection
   collectionById(id: String!): ICollection
+  catalogs(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """The method to use when ordering `Catalog`."""
+    orderBy: [CatalogsOrderBy!]
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: CatalogCondition
+  ): CatalogsConnection
+  catalogById(id: String!): Catalog
+  metas(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """The method to use when ordering `Meta`."""
+    orderBy: [MetasOrderBy!]
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: MetaCondition
+  ): MetasConnection
 }
 
 """A connection to a list of `ICollection` values."""
@@ -71,4 +121,119 @@ type PageInfo {
 
   """When paginating forwards, the cursor to continue."""
   endCursor: Cursor
+}
+
+"""A connection to a list of `Catalog` values."""
+type CatalogsConnection {
+  """A list of `Catalog` objects."""
+  nodes: [Catalog]!
+
+  """
+  A list of edges which contains the `Catalog` and cursor to aid in pagination.
+  """
+  edges: [CatalogsEdge]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """The count of *all* `Catalog` you could get from the connection."""
+  totalCount: Int!
+}
+
+type Catalog {
+  id: String!
+  title: String!
+  contents: [Content]
+}
+
+union Content = MovieCollection | SeasonCollection | Meta
+
+type Meta {
+  id: String!
+  title: String!
+  metaValue: String!
+}
+
+"""A `Catalog` edge in the connection."""
+type CatalogsEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `Catalog` at the end of the edge."""
+  node: Catalog
+}
+
+"""Methods to use when ordering `Catalog`."""
+enum CatalogsOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ID_ASC
+  ID_DESC
+  TITLE_ASC
+  TITLE_DESC
+}
+
+"""
+A condition to be used against `Catalog` object types. All fields are tested for equality and combined with a logical ‘and.’
+"""
+input CatalogCondition {
+  """Checks for equality with the object’s `id` field."""
+  id: String
+
+  """Checks for equality with the object’s `title` field."""
+  title: String
+}
+
+"""A connection to a list of `Meta` values."""
+type MetasConnection {
+  """A list of `Meta` objects."""
+  nodes: [Meta]!
+
+  """
+  A list of edges which contains the `Meta` and cursor to aid in pagination.
+  """
+  edges: [MetasEdge]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """The count of *all* `Meta` you could get from the connection."""
+  totalCount: Int!
+}
+
+"""A `Meta` edge in the connection."""
+type MetasEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `Meta` at the end of the edge."""
+  node: Meta
+}
+
+"""Methods to use when ordering `Meta`."""
+enum MetasOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ID_ASC
+  ID_DESC
+  TITLE_ASC
+  TITLE_DESC
+  META_VALUE_ASC
+  META_VALUE_DESC
+}
+
+"""
+A condition to be used against `Meta` object types. All fields are tested for equality and combined with a logical ‘and.’
+"""
+input MetaCondition {
+  """Checks for equality with the object’s `id` field."""
+  id: String
+
+  """Checks for equality with the object’s `title` field."""
+  title: String
+
+  """Checks for equality with the object’s `metaValue` field."""
+  metaValue: String
 }
