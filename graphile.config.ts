@@ -9,7 +9,7 @@ import PersistedPlugin from "@grafserv/persisted";
 import { PgOmitArchivedPlugin } from "@graphile-contrib/pg-omit-archived";
 import { PgSimplifyInflectionPreset } from "@graphile/simplify-inflection";
 import { NodePlugin } from "postgraphile/graphile-build";
-import { RootQueryExtensionsPlugin } from "./query-extensions";
+import { rootQueryExtensionsPlugin } from "./query-extensions";
 import { PgAggregatesAddConnectionAggregatesPlugin } from '@graphile/pg-aggregates/dist/AddConnectionAggregatesPlugin';
 import { PgAggregatesAddConnectionGroupedAggregatesPlugin } from '@graphile/pg-aggregates/dist/AddConnectionGroupedAggregatesPlugin';
 import { PgConnectionArgOrderByDefaultValuePlugin } from 'postgraphile/graphile-build-pg';
@@ -36,14 +36,14 @@ const preset: GraphileConfig.Preset = {
     PgAggregatesPreset,
     PgSimplifyInflectionPreset
   ],
-  plugins: [PersistedPlugin, PgOmitArchivedPlugin, RootQueryExtensionsPlugin],
+  plugins: [PersistedPlugin, PgOmitArchivedPlugin, rootQueryExtensionsPlugin],
   disablePlugins: ['QueryQueryPlugin'],
   pgServices: [
     makePgService({
       // Database connection string:
-      connectionString: 'postgresql://postgres:postgres@localhost:5432/outch-my-finger',
+      connectionString: 'postgresql://postgres:postgres@localhost:5432/ouch_my_finger',
       // List of schemas to expose:
-      schemas: ["app_public"],
+      schemas: ["public"],
     }),
   ],
   schema: {

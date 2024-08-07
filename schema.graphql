@@ -1,28 +1,6 @@
-type SeasonCollection implements ICollection {
-  id: String!
-  title: String!
-  type: String!
-  countEpisode: Int
-}
-
-interface ICollection {
-  id: String!
-  title: String!
-  type: String!
-}
-
-type MovieCollection implements ICollection {
-  id: String!
-  title: String!
-  type: String!
-  duration: String
-}
-
 """The root query type which gives access points into the data universe."""
 type Query {
-  collections: ICollectionsConnection
-  collectionById(id: String!): ICollection
-  catalogs(
+  animals(
     """Only read the first `n` values of the set."""
     first: Int
 
@@ -41,16 +19,19 @@ type Query {
     """Read all values in the set after (below) this cursor."""
     after: Cursor
 
-    """The method to use when ordering `Catalog`."""
-    orderBy: [CatalogsOrderBy!]
+    """The method to use when ordering `Animal`."""
+    orderBy: [AnimalsOrderBy!]
 
     """
     A condition to be used in determining which values should be returned by the collection.
     """
-    condition: CatalogCondition
-  ): CatalogsConnection
-  catalogById(id: String!): Catalog
-  metas(
+    condition: AnimalCondition
+
+    """Filter results to only those of the given types"""
+    only: [AnimalType!] @deprecated(reason: "EXPERIMENTAL")
+  ): AnimalsConnection
+  animalById(id: String!): Animal
+  cats(
     """Only read the first `n` values of the set."""
     first: Int
 
@@ -69,40 +50,78 @@ type Query {
     """Read all values in the set after (below) this cursor."""
     after: Cursor
 
-    """The method to use when ordering `Meta`."""
-    orderBy: [MetasOrderBy!]
+    """The method to use when ordering `Cat`."""
+    orderBy: [CatsOrderBy!]
 
     """
     A condition to be used in determining which values should be returned by the collection.
     """
-    condition: MetaCondition
-  ): MetasConnection
+    condition: CatCondition
+  ): CatsConnection
+  dogs(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """The method to use when ordering `Dog`."""
+    orderBy: [DogsOrderBy!]
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: DogCondition
+  ): DogsConnection
 }
 
-"""A connection to a list of `ICollection` values."""
-type ICollectionsConnection {
-  """A list of `ICollection` objects."""
-  nodes: [ICollection]!
+"""A connection to a list of `Animal` values."""
+type AnimalsConnection {
+  """A list of `Animal` objects."""
+  nodes: [Animal]!
 
   """
-  A list of edges which contains the `ICollection` and cursor to aid in pagination.
+  A list of edges which contains the `Animal` and cursor to aid in pagination.
   """
-  edges: [ICollectionsEdge]!
+  edges: [AnimalsEdge]!
 
   """Information to aid in pagination."""
   pageInfo: PageInfo!
 
-  """The count of *all* `ICollection` you could get from the connection."""
+  """The count of *all* `Animal` you could get from the connection."""
   totalCount: Int!
 }
 
-"""A `ICollection` edge in the connection."""
-type ICollectionsEdge {
+interface Animal {
+  id: UUID
+  name: String
+  age: Int
+}
+
+"""
+A universally unique identifier as defined by [RFC 4122](https://tools.ietf.org/html/rfc4122).
+"""
+scalar UUID
+
+"""A `Animal` edge in the connection."""
+type AnimalsEdge {
   """A cursor for use in pagination."""
   cursor: Cursor
 
-  """The `ICollection` at the end of the edge."""
-  node: ICollection
+  """The `Animal` at the end of the edge."""
+  node: Animal
 }
 
 """A location in a connection that can be used for resuming pagination."""
@@ -123,117 +142,174 @@ type PageInfo {
   endCursor: Cursor
 }
 
-"""A connection to a list of `Catalog` values."""
-type CatalogsConnection {
-  """A list of `Catalog` objects."""
-  nodes: [Catalog]!
+"""Methods to use when ordering `Animal`."""
+enum AnimalsOrderBy {
+  NATURAL
+  ID_ASC
+  ID_DESC
+  NAME_ASC
+  NAME_DESC
+  AGE_ASC
+  AGE_DESC
+}
+
+"""
+A condition to be used against `Animal` object types. All fields are tested for equality and combined with a logical ‘and.’
+"""
+input AnimalCondition {
+  """Checks for equality with the object’s `id` field."""
+  id: UUID
+
+  """Checks for equality with the object’s `name` field."""
+  name: String
+
+  """Checks for equality with the object’s `age` field."""
+  age: Int
+}
+
+enum AnimalType {
+  Cat
+  Dog
+}
+
+"""A connection to a list of `Cat` values."""
+type CatsConnection {
+  """A list of `Cat` objects."""
+  nodes: [Cat]!
 
   """
-  A list of edges which contains the `Catalog` and cursor to aid in pagination.
+  A list of edges which contains the `Cat` and cursor to aid in pagination.
   """
-  edges: [CatalogsEdge]!
+  edges: [CatsEdge]!
 
   """Information to aid in pagination."""
   pageInfo: PageInfo!
 
-  """The count of *all* `Catalog` you could get from the connection."""
+  """The count of *all* `Cat` you could get from the connection."""
   totalCount: Int!
 }
 
-type Catalog {
-  id: String!
-  title: String!
-  contents: [Content]
+type Cat implements Animal {
+  id: UUID!
+  name: String
+  age: Int
+  breed: String
+  indoor: Boolean
 }
 
-union Content = MovieCollection | SeasonCollection | Meta
-
-type Meta {
-  id: String!
-  title: String!
-  metaValue: String!
-}
-
-"""A `Catalog` edge in the connection."""
-type CatalogsEdge {
+"""A `Cat` edge in the connection."""
+type CatsEdge {
   """A cursor for use in pagination."""
   cursor: Cursor
 
-  """The `Catalog` at the end of the edge."""
-  node: Catalog
+  """The `Cat` at the end of the edge."""
+  node: Cat
 }
 
-"""Methods to use when ordering `Catalog`."""
-enum CatalogsOrderBy {
+"""Methods to use when ordering `Cat`."""
+enum CatsOrderBy {
   NATURAL
   PRIMARY_KEY_ASC
   PRIMARY_KEY_DESC
   ID_ASC
   ID_DESC
-  TITLE_ASC
-  TITLE_DESC
+  NAME_ASC
+  NAME_DESC
+  AGE_ASC
+  AGE_DESC
+  BREED_ASC
+  BREED_DESC
+  INDOOR_ASC
+  INDOOR_DESC
 }
 
 """
-A condition to be used against `Catalog` object types. All fields are tested for equality and combined with a logical ‘and.’
+A condition to be used against `Cat` object types. All fields are tested for equality and combined with a logical ‘and.’
 """
-input CatalogCondition {
+input CatCondition {
   """Checks for equality with the object’s `id` field."""
-  id: String
+  id: UUID
 
-  """Checks for equality with the object’s `title` field."""
-  title: String
+  """Checks for equality with the object’s `name` field."""
+  name: String
+
+  """Checks for equality with the object’s `age` field."""
+  age: Int
+
+  """Checks for equality with the object’s `breed` field."""
+  breed: String
+
+  """Checks for equality with the object’s `indoor` field."""
+  indoor: Boolean
 }
 
-"""A connection to a list of `Meta` values."""
-type MetasConnection {
-  """A list of `Meta` objects."""
-  nodes: [Meta]!
+"""A connection to a list of `Dog` values."""
+type DogsConnection {
+  """A list of `Dog` objects."""
+  nodes: [Dog]!
 
   """
-  A list of edges which contains the `Meta` and cursor to aid in pagination.
+  A list of edges which contains the `Dog` and cursor to aid in pagination.
   """
-  edges: [MetasEdge]!
+  edges: [DogsEdge]!
 
   """Information to aid in pagination."""
   pageInfo: PageInfo!
 
-  """The count of *all* `Meta` you could get from the connection."""
+  """The count of *all* `Dog` you could get from the connection."""
   totalCount: Int!
 }
 
-"""A `Meta` edge in the connection."""
-type MetasEdge {
+type Dog implements Animal {
+  id: UUID!
+  name: String
+  age: Int
+  breed: String
+  trained: Boolean
+}
+
+"""A `Dog` edge in the connection."""
+type DogsEdge {
   """A cursor for use in pagination."""
   cursor: Cursor
 
-  """The `Meta` at the end of the edge."""
-  node: Meta
+  """The `Dog` at the end of the edge."""
+  node: Dog
 }
 
-"""Methods to use when ordering `Meta`."""
-enum MetasOrderBy {
+"""Methods to use when ordering `Dog`."""
+enum DogsOrderBy {
   NATURAL
   PRIMARY_KEY_ASC
   PRIMARY_KEY_DESC
   ID_ASC
   ID_DESC
-  TITLE_ASC
-  TITLE_DESC
-  META_VALUE_ASC
-  META_VALUE_DESC
+  NAME_ASC
+  NAME_DESC
+  AGE_ASC
+  AGE_DESC
+  BREED_ASC
+  BREED_DESC
+  TRAINED_ASC
+  TRAINED_DESC
 }
 
 """
-A condition to be used against `Meta` object types. All fields are tested for equality and combined with a logical ‘and.’
+A condition to be used against `Dog` object types. All fields are tested for equality and combined with a logical ‘and.’
 """
-input MetaCondition {
+input DogCondition {
   """Checks for equality with the object’s `id` field."""
-  id: String
+  id: UUID
 
-  """Checks for equality with the object’s `title` field."""
-  title: String
+  """Checks for equality with the object’s `name` field."""
+  name: String
 
-  """Checks for equality with the object’s `metaValue` field."""
-  metaValue: String
+  """Checks for equality with the object’s `age` field."""
+  age: Int
+
+  """Checks for equality with the object’s `breed` field."""
+  breed: String
+
+  """Checks for equality with the object’s `trained` field."""
+  trained: Boolean
 }
