@@ -101,6 +101,9 @@ async function startGateway() {
   const postgraphileUrl =
     process.env.POSTGRAPHILE_URL ?? "http://localhost:5678/graphql";
 
+  const generatedDir = `${__dirname}/generated`;
+  await fs.mkdir(generatedDir, { recursive: true });
+
   const gateway = new ApolloGateway({
     supergraphSdl: new IntrospectAndCompose({
       subgraphs: [
@@ -110,9 +113,13 @@ async function startGateway() {
     }),
   });
 
-  // Load the supergraph SDL and print it for inspection.
-  // const { schema } = await gateway.load();
-  // await fs.writeFile(`${__dirname}/generated/supergraph.graphql`, printsche)
+  // Capture supergraph SDL on load/update and write to disk.
+  const outPath = `${generatedDir}/supergraph.graphql`;
+  gateway.onSchemaLoadOrUpdate(({ coreSupergraphSdl }) => {
+    void fs.writeFile(outPath, coreSupergraphSdl, "utf-8")
+      .then(() => console.log(`Wrote supergraph SDL to ${outPath}`))
+      .catch((e) => console.warn("Failed to write supergraph SDL", e));
+  });
 
   const server = new ApolloServer({ gateway });
   const { url } = await startStandaloneServer(server, {

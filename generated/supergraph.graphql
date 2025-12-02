@@ -1,0 +1,1459 @@
+schema
+  @link(url: "https://specs.apollo.dev/link/v1.0")
+  @link(url: "https://specs.apollo.dev/join/v0.4", for: EXECUTION)
+{
+  query: Query
+  mutation: Mutation
+}
+
+directive @join__directive(graphs: [join__Graph!], name: String!, args: join__DirectiveArguments) repeatable on SCHEMA | OBJECT | INTERFACE | FIELD_DEFINITION
+
+directive @join__enumValue(graph: join__Graph!) repeatable on ENUM_VALUE
+
+directive @join__field(graph: join__Graph, requires: join__FieldSet, provides: join__FieldSet, type: String, external: Boolean, override: String, usedOverridden: Boolean, overrideLabel: String) repeatable on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+
+directive @join__graph(name: String!, url: String!) on ENUM_VALUE
+
+directive @join__implements(graph: join__Graph!, interface: String!) repeatable on OBJECT | INTERFACE
+
+directive @join__type(graph: join__Graph!, key: join__FieldSet, extension: Boolean! = false, resolvable: Boolean! = true, isInterfaceObject: Boolean! = false) repeatable on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR
+
+directive @join__unionMember(graph: join__Graph!, member: String!) repeatable on UNION
+
+directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
+
+"""
+A signed eight-byte integer. The upper big integer values are greater than the
+max value for a JavaScript number. Therefore all big integers will be output as
+strings and not numbers.
+"""
+scalar BigInt
+  @join__type(graph: PG)
+
+"""
+A filter to be used against BigInt fields. All fields are combined with a logical ‘and.’
+"""
+input BigIntFilter
+  @join__type(graph: PG)
+{
+  """
+  Is null (if `true` is specified) or is not null (if `false` is specified).
+  """
+  isNull: Boolean
+
+  """Equal to the specified value."""
+  equalTo: BigInt
+
+  """Not equal to the specified value."""
+  notEqualTo: BigInt
+
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: BigInt
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: BigInt
+
+  """Included in the specified list."""
+  in: [BigInt!]
+
+  """Not included in the specified list."""
+  notIn: [BigInt!]
+
+  """Less than the specified value."""
+  lessThan: BigInt
+
+  """Less than or equal to the specified value."""
+  lessThanOrEqualTo: BigInt
+
+  """Greater than the specified value."""
+  greaterThan: BigInt
+
+  """Greater than or equal to the specified value."""
+  greaterThanOrEqualTo: BigInt
+}
+
+type Collection implements Node
+  @join__implements(graph: PG, interface: "Node")
+  @join__type(graph: MOCK, key: "id", extension: true)
+  @join__type(graph: PG, key: "id", extension: true)
+{
+  id: String!
+
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  nodeId: ID! @join__field(graph: PG)
+  title: String! @join__field(graph: PG)
+  createdAt: Datetime @join__field(graph: PG)
+
+  """Reads and enables pagination through a set of `Video`."""
+  videosByCollectionId(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: VideoCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: VideoFilter
+
+    """The method to use when ordering `Video`."""
+    orderBy: [VideosOrderBy!] = [PRIMARY_KEY_ASC]
+  ): VideosConnection! @join__field(graph: PG)
+}
+
+type CollectionAggregates
+  @join__type(graph: PG)
+{
+  keys: [String]
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: CollectionDistinctCountAggregates
+}
+
+"""
+A condition to be used against `Collection` object types. All fields are tested
+for equality and combined with a logical ‘and.’
+"""
+input CollectionCondition
+  @join__type(graph: PG)
+{
+  """Checks for equality with the object’s `id` field."""
+  id: String
+
+  """Checks for equality with the object’s `title` field."""
+  title: String
+
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: Datetime
+}
+
+type CollectionDistinctCountAggregates
+  @join__type(graph: PG)
+{
+  """Distinct count of id across the matching connection"""
+  id: BigInt
+
+  """Distinct count of title across the matching connection"""
+  title: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+}
+
+"""
+A filter to be used against `Collection` object types. All fields are combined with a logical ‘and.’
+"""
+input CollectionFilter
+  @join__type(graph: PG)
+{
+  """Filter by the object’s `id` field."""
+  id: StringFilter
+
+  """Filter by the object’s `title` field."""
+  title: StringFilter
+
+  """Filter by the object’s `createdAt` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s `videosByCollectionId` relation."""
+  videosByCollectionId: CollectionToManyVideoFilter
+
+  """Some related `videosByCollectionId` exist."""
+  videosByCollectionIdExist: Boolean
+
+  """Checks for all expressions in this list."""
+  and: [CollectionFilter!]
+
+  """Checks for any expressions in this list."""
+  or: [CollectionFilter!]
+
+  """Negates the expression."""
+  not: CollectionFilter
+}
+
+"""Grouping methods for `Collection` for usage during aggregation."""
+enum CollectionGroupBy
+  @join__type(graph: PG)
+{
+  TITLE @join__enumValue(graph: PG)
+  CREATED_AT @join__enumValue(graph: PG)
+  CREATED_AT_TRUNCATED_TO_HOUR @join__enumValue(graph: PG)
+  CREATED_AT_TRUNCATED_TO_DAY @join__enumValue(graph: PG)
+}
+
+input CollectionHavingAverageInput
+  @join__type(graph: PG)
+{
+  createdAt: HavingDatetimeFilter
+}
+
+input CollectionHavingDistinctCountInput
+  @join__type(graph: PG)
+{
+  createdAt: HavingDatetimeFilter
+}
+
+"""Conditions for `Collection` aggregates."""
+input CollectionHavingInput
+  @join__type(graph: PG)
+{
+  AND: [CollectionHavingInput!]
+  OR: [CollectionHavingInput!]
+  sum: CollectionHavingSumInput
+  distinctCount: CollectionHavingDistinctCountInput
+  min: CollectionHavingMinInput
+  max: CollectionHavingMaxInput
+  average: CollectionHavingAverageInput
+  stddevSample: CollectionHavingStddevSampleInput
+  stddevPopulation: CollectionHavingStddevPopulationInput
+  varianceSample: CollectionHavingVarianceSampleInput
+  variancePopulation: CollectionHavingVariancePopulationInput
+}
+
+input CollectionHavingMaxInput
+  @join__type(graph: PG)
+{
+  createdAt: HavingDatetimeFilter
+}
+
+input CollectionHavingMinInput
+  @join__type(graph: PG)
+{
+  createdAt: HavingDatetimeFilter
+}
+
+input CollectionHavingStddevPopulationInput
+  @join__type(graph: PG)
+{
+  createdAt: HavingDatetimeFilter
+}
+
+input CollectionHavingStddevSampleInput
+  @join__type(graph: PG)
+{
+  createdAt: HavingDatetimeFilter
+}
+
+input CollectionHavingSumInput
+  @join__type(graph: PG)
+{
+  createdAt: HavingDatetimeFilter
+}
+
+input CollectionHavingVariancePopulationInput
+  @join__type(graph: PG)
+{
+  createdAt: HavingDatetimeFilter
+}
+
+input CollectionHavingVarianceSampleInput
+  @join__type(graph: PG)
+{
+  createdAt: HavingDatetimeFilter
+}
+
+"""An input for mutations affecting `Collection`"""
+input CollectionInput
+  @join__type(graph: PG)
+{
+  id: String
+  title: String!
+  createdAt: Datetime
+}
+
+"""
+Represents an update to a `Collection`. Fields that are set will be updated.
+"""
+input CollectionPatch
+  @join__type(graph: PG)
+{
+  id: String
+  title: String
+  createdAt: Datetime
+}
+
+"""A connection to a list of `Collection` values."""
+type CollectionsConnection
+  @join__type(graph: PG)
+{
+  """A list of `Collection` objects."""
+  nodes: [Collection]!
+
+  """
+  A list of edges which contains the `Collection` and cursor to aid in pagination.
+  """
+  edges: [CollectionsEdge]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """The count of *all* `Collection` you could get from the connection."""
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: CollectionAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """The method to use when grouping `Collection` for these aggregates."""
+    groupBy: [CollectionGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: CollectionHavingInput
+  ): [CollectionAggregates!]
+}
+
+"""A `Collection` edge in the connection."""
+type CollectionsEdge
+  @join__type(graph: PG)
+{
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `Collection` at the end of the edge."""
+  node: Collection
+}
+
+"""Methods to use when ordering `Collection`."""
+enum CollectionsOrderBy
+  @join__type(graph: PG)
+{
+  NATURAL @join__enumValue(graph: PG)
+  PRIMARY_KEY_ASC @join__enumValue(graph: PG)
+  PRIMARY_KEY_DESC @join__enumValue(graph: PG)
+  ID_ASC @join__enumValue(graph: PG)
+  ID_DESC @join__enumValue(graph: PG)
+  TITLE_ASC @join__enumValue(graph: PG)
+  TITLE_DESC @join__enumValue(graph: PG)
+  CREATED_AT_ASC @join__enumValue(graph: PG)
+  CREATED_AT_DESC @join__enumValue(graph: PG)
+  VIDEOS_BY_COLLECTION_ID_COUNT_ASC @join__enumValue(graph: PG)
+  VIDEOS_BY_COLLECTION_ID_COUNT_DESC @join__enumValue(graph: PG)
+  VIDEOS_BY_COLLECTION_ID_DISTINCT_COUNT_ID_ASC @join__enumValue(graph: PG)
+  VIDEOS_BY_COLLECTION_ID_DISTINCT_COUNT_ID_DESC @join__enumValue(graph: PG)
+  VIDEOS_BY_COLLECTION_ID_DISTINCT_COUNT_TITLE_ASC @join__enumValue(graph: PG)
+  VIDEOS_BY_COLLECTION_ID_DISTINCT_COUNT_TITLE_DESC @join__enumValue(graph: PG)
+  VIDEOS_BY_COLLECTION_ID_DISTINCT_COUNT_COLLECTION_ID_ASC @join__enumValue(graph: PG)
+  VIDEOS_BY_COLLECTION_ID_DISTINCT_COUNT_COLLECTION_ID_DESC @join__enumValue(graph: PG)
+  VIDEOS_BY_COLLECTION_ID_DISTINCT_COUNT_CREATED_AT_ASC @join__enumValue(graph: PG)
+  VIDEOS_BY_COLLECTION_ID_DISTINCT_COUNT_CREATED_AT_DESC @join__enumValue(graph: PG)
+}
+
+"""
+A filter to be used against many `Video` object types. All fields are combined with a logical ‘and.’
+"""
+input CollectionToManyVideoFilter
+  @join__type(graph: PG)
+{
+  """
+  Every related `Video` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  every: VideoFilter
+
+  """
+  Some related `Video` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  some: VideoFilter
+
+  """
+  No related `Video` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  none: VideoFilter
+
+  """Aggregates across related `Video` match the filter criteria."""
+  aggregates: VideoAggregatesFilter
+}
+
+"""All input for the create `Collection` mutation."""
+input CreateCollectionInput
+  @join__type(graph: PG)
+{
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """The `Collection` to be created by this mutation."""
+  collection: CollectionInput!
+}
+
+"""The output of our create `Collection` mutation."""
+type CreateCollectionPayload
+  @join__type(graph: PG)
+{
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `Collection` that was created by this mutation."""
+  collection: Collection
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `Collection`. May be used by Relay 1."""
+  collectionEdge(
+    """The method to use when ordering `Collection`."""
+    orderBy: [CollectionsOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): CollectionsEdge
+}
+
+"""All input for the create `Video` mutation."""
+input CreateVideoInput
+  @join__type(graph: PG)
+{
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """The `Video` to be created by this mutation."""
+  video: VideoInput!
+}
+
+"""The output of our create `Video` mutation."""
+type CreateVideoPayload
+  @join__type(graph: PG)
+{
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `Video` that was created by this mutation."""
+  video: Video
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `Video`. May be used by Relay 1."""
+  videoEdge(
+    """The method to use when ordering `Video`."""
+    orderBy: [VideosOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): VideosEdge
+
+  """Reads a single `Collection` that is related to this `Video`."""
+  collectionByCollectionId: Collection
+}
+
+"""A location in a connection that can be used for resuming pagination."""
+scalar Cursor
+  @join__type(graph: PG)
+
+"""
+A point in time as described by the [ISO
+8601](https://en.wikipedia.org/wiki/ISO_8601) and, if it has a timezone, [RFC
+3339](https://datatracker.ietf.org/doc/html/rfc3339) standards. Input values
+that do not conform to both ISO 8601 and RFC 3339 may be coerced, which may lead
+to unexpected results.
+"""
+scalar Datetime
+  @join__type(graph: PG)
+
+"""
+A filter to be used against Datetime fields. All fields are combined with a logical ‘and.’
+"""
+input DatetimeFilter
+  @join__type(graph: PG)
+{
+  """
+  Is null (if `true` is specified) or is not null (if `false` is specified).
+  """
+  isNull: Boolean
+
+  """Equal to the specified value."""
+  equalTo: Datetime
+
+  """Not equal to the specified value."""
+  notEqualTo: Datetime
+
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: Datetime
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: Datetime
+
+  """Included in the specified list."""
+  in: [Datetime!]
+
+  """Not included in the specified list."""
+  notIn: [Datetime!]
+
+  """Less than the specified value."""
+  lessThan: Datetime
+
+  """Less than or equal to the specified value."""
+  lessThanOrEqualTo: Datetime
+
+  """Greater than the specified value."""
+  greaterThan: Datetime
+
+  """Greater than or equal to the specified value."""
+  greaterThanOrEqualTo: Datetime
+}
+
+"""All input for the `deleteCollectionById` mutation."""
+input DeleteCollectionByIdInput
+  @join__type(graph: PG)
+{
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  id: String!
+}
+
+"""All input for the `deleteCollection` mutation."""
+input DeleteCollectionInput
+  @join__type(graph: PG)
+{
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """
+  The globally unique `ID` which will identify a single `Collection` to be deleted.
+  """
+  nodeId: ID!
+}
+
+"""The output of our delete `Collection` mutation."""
+type DeleteCollectionPayload
+  @join__type(graph: PG)
+{
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `Collection` that was deleted by this mutation."""
+  collection: Collection
+  deletedCollectionId: ID
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `Collection`. May be used by Relay 1."""
+  collectionEdge(
+    """The method to use when ordering `Collection`."""
+    orderBy: [CollectionsOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): CollectionsEdge
+}
+
+"""All input for the `deleteVideoById` mutation."""
+input DeleteVideoByIdInput
+  @join__type(graph: PG)
+{
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  id: String!
+}
+
+"""All input for the `deleteVideo` mutation."""
+input DeleteVideoInput
+  @join__type(graph: PG)
+{
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """
+  The globally unique `ID` which will identify a single `Video` to be deleted.
+  """
+  nodeId: ID!
+}
+
+"""The output of our delete `Video` mutation."""
+type DeleteVideoPayload
+  @join__type(graph: PG)
+{
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `Video` that was deleted by this mutation."""
+  video: Video
+  deletedVideoId: ID
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `Video`. May be used by Relay 1."""
+  videoEdge(
+    """The method to use when ordering `Video`."""
+    orderBy: [VideosOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): VideosEdge
+
+  """Reads a single `Collection` that is related to this `Video`."""
+  collectionByCollectionId: Collection
+}
+
+input HavingDatetimeFilter
+  @join__type(graph: PG)
+{
+  equalTo: Datetime
+  notEqualTo: Datetime
+  greaterThan: Datetime
+  greaterThanOrEqualTo: Datetime
+  lessThan: Datetime
+  lessThanOrEqualTo: Datetime
+}
+
+scalar join__DirectiveArguments
+
+scalar join__FieldSet
+
+enum join__Graph {
+  MOCK @join__graph(name: "mock", url: "http://localhost:4002/")
+  PG @join__graph(name: "pg", url: "http://localhost:5678/graphql")
+}
+
+scalar link__Import
+
+enum link__Purpose {
+  """
+  `SECURITY` features provide metadata necessary to securely resolve fields.
+  """
+  SECURITY
+
+  """
+  `EXECUTION` features provide metadata necessary for operation execution.
+  """
+  EXECUTION
+}
+
+"""
+The root mutation type which contains root level fields which mutate data.
+"""
+type Mutation
+  @join__type(graph: PG)
+{
+  """Creates a single `Collection`."""
+  createCollection(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreateCollectionInput!
+  ): CreateCollectionPayload
+
+  """Creates a single `Video`."""
+  createVideo(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreateVideoInput!
+  ): CreateVideoPayload
+
+  """
+  Updates a single `Collection` using its globally unique id and a patch.
+  """
+  updateCollection(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateCollectionInput!
+  ): UpdateCollectionPayload
+
+  """Updates a single `Collection` using a unique key and a patch."""
+  updateCollectionById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateCollectionByIdInput!
+  ): UpdateCollectionPayload
+
+  """Updates a single `Video` using its globally unique id and a patch."""
+  updateVideo(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateVideoInput!
+  ): UpdateVideoPayload
+
+  """Updates a single `Video` using a unique key and a patch."""
+  updateVideoById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateVideoByIdInput!
+  ): UpdateVideoPayload
+
+  """Deletes a single `Collection` using its globally unique id."""
+  deleteCollection(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteCollectionInput!
+  ): DeleteCollectionPayload
+
+  """Deletes a single `Collection` using a unique key."""
+  deleteCollectionById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteCollectionByIdInput!
+  ): DeleteCollectionPayload
+
+  """Deletes a single `Video` using its globally unique id."""
+  deleteVideo(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteVideoInput!
+  ): DeleteVideoPayload
+
+  """Deletes a single `Video` using a unique key."""
+  deleteVideoById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteVideoByIdInput!
+  ): DeleteVideoPayload
+}
+
+"""An object with a globally unique `ID`."""
+interface Node
+  @join__type(graph: PG)
+{
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  nodeId: ID!
+}
+
+"""Information about pagination in a connection."""
+type PageInfo
+  @join__type(graph: PG)
+{
+  """When paginating forwards, are there more items?"""
+  hasNextPage: Boolean!
+
+  """When paginating backwards, are there more items?"""
+  hasPreviousPage: Boolean!
+
+  """When paginating backwards, the cursor to continue."""
+  startCursor: Cursor
+
+  """When paginating forwards, the cursor to continue."""
+  endCursor: Cursor
+}
+
+"""The root query type which gives access points into the data universe."""
+type Query implements Node
+  @join__implements(graph: PG, interface: "Node")
+  @join__type(graph: MOCK)
+  @join__type(graph: PG)
+{
+  collectionRefs: [Collection!]! @join__field(graph: MOCK)
+  videoRefs: [Video!]! @join__field(graph: MOCK)
+
+  """
+  Exposes the root query type nested one level down. This is helpful for Relay 1
+  which can only query top level fields if they are in a particular form.
+  """
+  query: Query! @join__field(graph: PG)
+
+  """
+  The root query type must be a `Node` to work well with Relay 1 mutations. This just resolves to `query`.
+  """
+  nodeId: ID! @join__field(graph: PG)
+
+  """Fetches an object given its globally unique `ID`."""
+  node(
+    """The globally unique `ID`."""
+    nodeId: ID!
+  ): Node @join__field(graph: PG)
+
+  """Get a single `Collection`."""
+  collectionById(id: String!): Collection @join__field(graph: PG)
+
+  """Get a single `Video`."""
+  videoById(id: String!): Video @join__field(graph: PG)
+
+  """Reads a single `Collection` using its globally unique `ID`."""
+  collection(
+    """
+    The globally unique `ID` to be used in selecting a single `Collection`.
+    """
+    nodeId: ID!
+  ): Collection @join__field(graph: PG)
+
+  """Reads a single `Video` using its globally unique `ID`."""
+  video(
+    """The globally unique `ID` to be used in selecting a single `Video`."""
+    nodeId: ID!
+  ): Video @join__field(graph: PG)
+
+  """Reads and enables pagination through a set of `Collection`."""
+  allCollections(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: CollectionCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: CollectionFilter
+
+    """The method to use when ordering `Collection`."""
+    orderBy: [CollectionsOrderBy!] = [PRIMARY_KEY_ASC]
+  ): CollectionsConnection @join__field(graph: PG)
+
+  """Reads and enables pagination through a set of `Video`."""
+  allVideos(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: VideoCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: VideoFilter
+
+    """The method to use when ordering `Video`."""
+    orderBy: [VideosOrderBy!] = [PRIMARY_KEY_ASC]
+  ): VideosConnection @join__field(graph: PG)
+}
+
+"""
+A filter to be used against String fields. All fields are combined with a logical ‘and.’
+"""
+input StringFilter
+  @join__type(graph: PG)
+{
+  """
+  Is null (if `true` is specified) or is not null (if `false` is specified).
+  """
+  isNull: Boolean
+
+  """Equal to the specified value."""
+  equalTo: String
+
+  """Not equal to the specified value."""
+  notEqualTo: String
+
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: String
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: String
+
+  """Included in the specified list."""
+  in: [String!]
+
+  """Not included in the specified list."""
+  notIn: [String!]
+
+  """Less than the specified value."""
+  lessThan: String
+
+  """Less than or equal to the specified value."""
+  lessThanOrEqualTo: String
+
+  """Greater than the specified value."""
+  greaterThan: String
+
+  """Greater than or equal to the specified value."""
+  greaterThanOrEqualTo: String
+
+  """Contains the specified string (case-sensitive)."""
+  includes: String
+
+  """Does not contain the specified string (case-sensitive)."""
+  notIncludes: String
+
+  """Contains the specified string (case-insensitive)."""
+  includesInsensitive: String
+
+  """Does not contain the specified string (case-insensitive)."""
+  notIncludesInsensitive: String
+
+  """Starts with the specified string (case-sensitive)."""
+  startsWith: String
+
+  """Does not start with the specified string (case-sensitive)."""
+  notStartsWith: String
+
+  """Starts with the specified string (case-insensitive)."""
+  startsWithInsensitive: String
+
+  """Does not start with the specified string (case-insensitive)."""
+  notStartsWithInsensitive: String
+
+  """Ends with the specified string (case-sensitive)."""
+  endsWith: String
+
+  """Does not end with the specified string (case-sensitive)."""
+  notEndsWith: String
+
+  """Ends with the specified string (case-insensitive)."""
+  endsWithInsensitive: String
+
+  """Does not end with the specified string (case-insensitive)."""
+  notEndsWithInsensitive: String
+
+  """
+  Matches the specified pattern (case-sensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters.
+  """
+  like: String
+
+  """
+  Does not match the specified pattern (case-sensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters.
+  """
+  notLike: String
+
+  """
+  Matches the specified pattern (case-insensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters.
+  """
+  likeInsensitive: String
+
+  """
+  Does not match the specified pattern (case-insensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters.
+  """
+  notLikeInsensitive: String
+
+  """Equal to the specified value (case-insensitive)."""
+  equalToInsensitive: String
+
+  """Not equal to the specified value (case-insensitive)."""
+  notEqualToInsensitive: String
+
+  """
+  Not equal to the specified value, treating null like an ordinary value (case-insensitive).
+  """
+  distinctFromInsensitive: String
+
+  """
+  Equal to the specified value, treating null like an ordinary value (case-insensitive).
+  """
+  notDistinctFromInsensitive: String
+
+  """Included in the specified list (case-insensitive)."""
+  inInsensitive: [String!]
+
+  """Not included in the specified list (case-insensitive)."""
+  notInInsensitive: [String!]
+
+  """Less than the specified value (case-insensitive)."""
+  lessThanInsensitive: String
+
+  """Less than or equal to the specified value (case-insensitive)."""
+  lessThanOrEqualToInsensitive: String
+
+  """Greater than the specified value (case-insensitive)."""
+  greaterThanInsensitive: String
+
+  """Greater than or equal to the specified value (case-insensitive)."""
+  greaterThanOrEqualToInsensitive: String
+}
+
+"""All input for the `updateCollectionById` mutation."""
+input UpdateCollectionByIdInput
+  @join__type(graph: PG)
+{
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  id: String!
+
+  """
+  An object where the defined keys will be set on the `Collection` being updated.
+  """
+  collectionPatch: CollectionPatch!
+}
+
+"""All input for the `updateCollection` mutation."""
+input UpdateCollectionInput
+  @join__type(graph: PG)
+{
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """
+  The globally unique `ID` which will identify a single `Collection` to be updated.
+  """
+  nodeId: ID!
+
+  """
+  An object where the defined keys will be set on the `Collection` being updated.
+  """
+  collectionPatch: CollectionPatch!
+}
+
+"""The output of our update `Collection` mutation."""
+type UpdateCollectionPayload
+  @join__type(graph: PG)
+{
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `Collection` that was updated by this mutation."""
+  collection: Collection
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `Collection`. May be used by Relay 1."""
+  collectionEdge(
+    """The method to use when ordering `Collection`."""
+    orderBy: [CollectionsOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): CollectionsEdge
+}
+
+"""All input for the `updateVideoById` mutation."""
+input UpdateVideoByIdInput
+  @join__type(graph: PG)
+{
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  id: String!
+
+  """
+  An object where the defined keys will be set on the `Video` being updated.
+  """
+  videoPatch: VideoPatch!
+}
+
+"""All input for the `updateVideo` mutation."""
+input UpdateVideoInput
+  @join__type(graph: PG)
+{
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """
+  The globally unique `ID` which will identify a single `Video` to be updated.
+  """
+  nodeId: ID!
+
+  """
+  An object where the defined keys will be set on the `Video` being updated.
+  """
+  videoPatch: VideoPatch!
+}
+
+"""The output of our update `Video` mutation."""
+type UpdateVideoPayload
+  @join__type(graph: PG)
+{
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `Video` that was updated by this mutation."""
+  video: Video
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `Video`. May be used by Relay 1."""
+  videoEdge(
+    """The method to use when ordering `Video`."""
+    orderBy: [VideosOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): VideosEdge
+
+  """Reads a single `Collection` that is related to this `Video`."""
+  collectionByCollectionId: Collection
+}
+
+type Video implements Node
+  @join__implements(graph: PG, interface: "Node")
+  @join__type(graph: MOCK, key: "id", extension: true)
+  @join__type(graph: PG, key: "id", extension: true)
+{
+  id: String!
+
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  nodeId: ID! @join__field(graph: PG)
+  title: String! @join__field(graph: PG)
+  collectionId: String @join__field(graph: PG)
+  createdAt: Datetime @join__field(graph: PG)
+
+  """Reads a single `Collection` that is related to this `Video`."""
+  collectionByCollectionId: Collection @join__field(graph: PG)
+}
+
+type VideoAggregates
+  @join__type(graph: PG)
+{
+  keys: [String]
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: VideoDistinctCountAggregates
+}
+
+"""A filter to be used against aggregates of `Video` object types."""
+input VideoAggregatesFilter
+  @join__type(graph: PG)
+{
+  """
+  A filter that must pass for the relevant `Video` object to be included within the aggregate.
+  """
+  filter: VideoFilter
+
+  """Distinct count aggregate over matching `Video` objects."""
+  distinctCount: VideoDistinctCountAggregateFilter
+}
+
+"""
+A condition to be used against `Video` object types. All fields are tested for equality and combined with a logical ‘and.’
+"""
+input VideoCondition
+  @join__type(graph: PG)
+{
+  """Checks for equality with the object’s `id` field."""
+  id: String
+
+  """Checks for equality with the object’s `title` field."""
+  title: String
+
+  """Checks for equality with the object’s `collectionId` field."""
+  collectionId: String
+
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: Datetime
+}
+
+input VideoDistinctCountAggregateFilter
+  @join__type(graph: PG)
+{
+  id: BigIntFilter
+  title: BigIntFilter
+  collectionId: BigIntFilter
+  createdAt: BigIntFilter
+}
+
+type VideoDistinctCountAggregates
+  @join__type(graph: PG)
+{
+  """Distinct count of id across the matching connection"""
+  id: BigInt
+
+  """Distinct count of title across the matching connection"""
+  title: BigInt
+
+  """Distinct count of collectionId across the matching connection"""
+  collectionId: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+}
+
+"""
+A filter to be used against `Video` object types. All fields are combined with a logical ‘and.’
+"""
+input VideoFilter
+  @join__type(graph: PG)
+{
+  """Filter by the object’s `id` field."""
+  id: StringFilter
+
+  """Filter by the object’s `title` field."""
+  title: StringFilter
+
+  """Filter by the object’s `collectionId` field."""
+  collectionId: StringFilter
+
+  """Filter by the object’s `createdAt` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s `collectionByCollectionId` relation."""
+  collectionByCollectionId: CollectionFilter
+
+  """A related `collectionByCollectionId` exists."""
+  collectionByCollectionIdExists: Boolean
+
+  """Checks for all expressions in this list."""
+  and: [VideoFilter!]
+
+  """Checks for any expressions in this list."""
+  or: [VideoFilter!]
+
+  """Negates the expression."""
+  not: VideoFilter
+}
+
+"""Grouping methods for `Video` for usage during aggregation."""
+enum VideoGroupBy
+  @join__type(graph: PG)
+{
+  TITLE @join__enumValue(graph: PG)
+  COLLECTION_ID @join__enumValue(graph: PG)
+  CREATED_AT @join__enumValue(graph: PG)
+  CREATED_AT_TRUNCATED_TO_HOUR @join__enumValue(graph: PG)
+  CREATED_AT_TRUNCATED_TO_DAY @join__enumValue(graph: PG)
+}
+
+input VideoHavingAverageInput
+  @join__type(graph: PG)
+{
+  createdAt: HavingDatetimeFilter
+}
+
+input VideoHavingDistinctCountInput
+  @join__type(graph: PG)
+{
+  createdAt: HavingDatetimeFilter
+}
+
+"""Conditions for `Video` aggregates."""
+input VideoHavingInput
+  @join__type(graph: PG)
+{
+  AND: [VideoHavingInput!]
+  OR: [VideoHavingInput!]
+  sum: VideoHavingSumInput
+  distinctCount: VideoHavingDistinctCountInput
+  min: VideoHavingMinInput
+  max: VideoHavingMaxInput
+  average: VideoHavingAverageInput
+  stddevSample: VideoHavingStddevSampleInput
+  stddevPopulation: VideoHavingStddevPopulationInput
+  varianceSample: VideoHavingVarianceSampleInput
+  variancePopulation: VideoHavingVariancePopulationInput
+}
+
+input VideoHavingMaxInput
+  @join__type(graph: PG)
+{
+  createdAt: HavingDatetimeFilter
+}
+
+input VideoHavingMinInput
+  @join__type(graph: PG)
+{
+  createdAt: HavingDatetimeFilter
+}
+
+input VideoHavingStddevPopulationInput
+  @join__type(graph: PG)
+{
+  createdAt: HavingDatetimeFilter
+}
+
+input VideoHavingStddevSampleInput
+  @join__type(graph: PG)
+{
+  createdAt: HavingDatetimeFilter
+}
+
+input VideoHavingSumInput
+  @join__type(graph: PG)
+{
+  createdAt: HavingDatetimeFilter
+}
+
+input VideoHavingVariancePopulationInput
+  @join__type(graph: PG)
+{
+  createdAt: HavingDatetimeFilter
+}
+
+input VideoHavingVarianceSampleInput
+  @join__type(graph: PG)
+{
+  createdAt: HavingDatetimeFilter
+}
+
+"""An input for mutations affecting `Video`"""
+input VideoInput
+  @join__type(graph: PG)
+{
+  id: String
+  title: String!
+  collectionId: String
+  createdAt: Datetime
+}
+
+"""
+Represents an update to a `Video`. Fields that are set will be updated.
+"""
+input VideoPatch
+  @join__type(graph: PG)
+{
+  id: String
+  title: String
+  collectionId: String
+  createdAt: Datetime
+}
+
+"""A connection to a list of `Video` values."""
+type VideosConnection
+  @join__type(graph: PG)
+{
+  """A list of `Video` objects."""
+  nodes: [Video]!
+
+  """
+  A list of edges which contains the `Video` and cursor to aid in pagination.
+  """
+  edges: [VideosEdge]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """The count of *all* `Video` you could get from the connection."""
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: VideoAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """The method to use when grouping `Video` for these aggregates."""
+    groupBy: [VideoGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: VideoHavingInput
+  ): [VideoAggregates!]
+}
+
+"""A `Video` edge in the connection."""
+type VideosEdge
+  @join__type(graph: PG)
+{
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `Video` at the end of the edge."""
+  node: Video
+}
+
+"""Methods to use when ordering `Video`."""
+enum VideosOrderBy
+  @join__type(graph: PG)
+{
+  NATURAL @join__enumValue(graph: PG)
+  PRIMARY_KEY_ASC @join__enumValue(graph: PG)
+  PRIMARY_KEY_DESC @join__enumValue(graph: PG)
+  ID_ASC @join__enumValue(graph: PG)
+  ID_DESC @join__enumValue(graph: PG)
+  TITLE_ASC @join__enumValue(graph: PG)
+  TITLE_DESC @join__enumValue(graph: PG)
+  COLLECTION_ID_ASC @join__enumValue(graph: PG)
+  COLLECTION_ID_DESC @join__enumValue(graph: PG)
+  CREATED_AT_ASC @join__enumValue(graph: PG)
+  CREATED_AT_DESC @join__enumValue(graph: PG)
+}
