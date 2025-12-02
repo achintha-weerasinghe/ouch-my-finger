@@ -4,16 +4,22 @@
   "private": true,
   "scripts": {
     "start": "yarn && GRAPHILE_ENV=production yarn run server:express",
-    "dev": "yarn && GRAPHILE_ENV=development yarn run server:express",
+    "dev": "yarn && GRAPHILE_ENV=development DATABASE_URL=postgres://postgres:postgres@localhost:6432/appdb yarn run server:express",
     "server:express": "node --experimental-strip-types server-express.ts",
+    "gateway": "node --experimental-strip-types federation-gateway.ts",
     "postgraphile": "NODE_OPTIONS=\"--experimental-strip-types\" postgraphile"
   },
   "dependencies": {
+    "@apollo/federation-internals": "^2.12.1",
+    "@apollo/gateway": "^2.9.1",
+    "@apollo/server": "^4.11.1",
+    "@apollo/subgraph": "^2.12.1",
     "@grafserv/persisted": "^1.0.0-rc.1",
     "@graphile-contrib/pg-many-to-many": "^2.0.0-rc.1",
     "@graphile-contrib/pg-omit-archived": "^4.0.0-rc.1",
     "@graphile/pg-aggregates": "^0.2.0-rc.1",
     "@graphile/simplify-inflection": "^8.0.0-rc.1",
+    "@graphql-tools/wrap": "^11.0.5",
     "express": "^4.18.2",
     "graphile": "^5.0.0-rc.1",
     "postgraphile": "^5.0.0-rc.1",
