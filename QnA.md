@@ -55,13 +55,6 @@ Notes:
 
 Pseudo resolver for entity lookup (PostGraphile side):
 
-```ts
-// inside _entities plan/resolver
-const row = await db.collections.findById(id);
-const typename = row.type === "MOVIE" ? "MovieCollection" : "SeriesCollection";
-return { __typename: typename, id: row.id };
-```
-
 Key points:
 - Keep `@key` on the interface and on each implementing type.
 - Use `@interfaceObject` in any subgraph that only emits interface references.
