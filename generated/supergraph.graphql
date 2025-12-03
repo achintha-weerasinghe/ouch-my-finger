@@ -74,9 +74,9 @@ input BigIntFilter
   greaterThanOrEqualTo: BigInt
 }
 
-type Collection implements Node
+interface Collection implements Node
   @join__implements(graph: PG, interface: "Node")
-  @join__type(graph: MOCK, key: "id", extension: true)
+  @join__type(graph: MOCK, key: "id", extension: true, isInterfaceObject: true)
   @join__type(graph: PG, key: "id", extension: true)
 {
   id: String!
@@ -86,6 +86,7 @@ type Collection implements Node
   """
   nodeId: ID! @join__field(graph: PG)
   title: String! @join__field(graph: PG)
+  type: String! @join__field(graph: PG)
   createdAt: Datetime @join__field(graph: PG)
 
   """Reads and enables pagination through a set of `Video`."""
@@ -107,19 +108,6 @@ type Collection implements Node
 
     """Read all values in the set after (below) this cursor."""
     after: Cursor
-
-    """
-    A condition to be used in determining which values should be returned by the collection.
-    """
-    condition: VideoCondition
-
-    """
-    A filter to be used in determining which values should be returned by the collection.
-    """
-    filter: VideoFilter
-
-    """The method to use when ordering `Video`."""
-    orderBy: [VideosOrderBy!] = [PRIMARY_KEY_ASC]
   ): VideosConnection! @join__field(graph: PG)
 }
 
@@ -147,6 +135,9 @@ input CollectionCondition
   """Checks for equality with the object’s `title` field."""
   title: String
 
+  """Checks for equality with the object’s `type` field."""
+  type: String
+
   """Checks for equality with the object’s `createdAt` field."""
   createdAt: Datetime
 }
@@ -159,6 +150,9 @@ type CollectionDistinctCountAggregates
 
   """Distinct count of title across the matching connection"""
   title: BigInt
+
+  """Distinct count of type across the matching connection"""
+  type: BigInt
 
   """Distinct count of createdAt across the matching connection"""
   createdAt: BigInt
@@ -175,6 +169,9 @@ input CollectionFilter
 
   """Filter by the object’s `title` field."""
   title: StringFilter
+
+  """Filter by the object’s `type` field."""
+  type: StringFilter
 
   """Filter by the object’s `createdAt` field."""
   createdAt: DatetimeFilter
@@ -200,6 +197,7 @@ enum CollectionGroupBy
   @join__type(graph: PG)
 {
   TITLE @join__enumValue(graph: PG)
+  TYPE @join__enumValue(graph: PG)
   CREATED_AT @join__enumValue(graph: PG)
   CREATED_AT_TRUNCATED_TO_HOUR @join__enumValue(graph: PG)
   CREATED_AT_TRUNCATED_TO_DAY @join__enumValue(graph: PG)
@@ -276,26 +274,6 @@ input CollectionHavingVarianceSampleInput
   createdAt: HavingDatetimeFilter
 }
 
-"""An input for mutations affecting `Collection`"""
-input CollectionInput
-  @join__type(graph: PG)
-{
-  id: String
-  title: String!
-  createdAt: Datetime
-}
-
-"""
-Represents an update to a `Collection`. Fields that are set will be updated.
-"""
-input CollectionPatch
-  @join__type(graph: PG)
-{
-  id: String
-  title: String
-  createdAt: Datetime
-}
-
 """A connection to a list of `Collection` values."""
 type CollectionsConnection
   @join__type(graph: PG)
@@ -353,6 +331,8 @@ enum CollectionsOrderBy
   ID_DESC @join__enumValue(graph: PG)
   TITLE_ASC @join__enumValue(graph: PG)
   TITLE_DESC @join__enumValue(graph: PG)
+  TYPE_ASC @join__enumValue(graph: PG)
+  TYPE_DESC @join__enumValue(graph: PG)
   CREATED_AT_ASC @join__enumValue(graph: PG)
   CREATED_AT_DESC @join__enumValue(graph: PG)
   VIDEOS_BY_COLLECTION_ID_COUNT_ASC @join__enumValue(graph: PG)
@@ -390,45 +370,6 @@ input CollectionToManyVideoFilter
 
   """Aggregates across related `Video` match the filter criteria."""
   aggregates: VideoAggregatesFilter
-}
-
-"""All input for the create `Collection` mutation."""
-input CreateCollectionInput
-  @join__type(graph: PG)
-{
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """The `Collection` to be created by this mutation."""
-  collection: CollectionInput!
-}
-
-"""The output of our create `Collection` mutation."""
-type CreateCollectionPayload
-  @join__type(graph: PG)
-{
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `Collection` that was created by this mutation."""
-  collection: Collection
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `Collection`. May be used by Relay 1."""
-  collectionEdge(
-    """The method to use when ordering `Collection`."""
-    orderBy: [CollectionsOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): CollectionsEdge
 }
 
 """All input for the create `Video` mutation."""
@@ -531,60 +472,6 @@ input DatetimeFilter
   greaterThanOrEqualTo: Datetime
 }
 
-"""All input for the `deleteCollectionById` mutation."""
-input DeleteCollectionByIdInput
-  @join__type(graph: PG)
-{
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  id: String!
-}
-
-"""All input for the `deleteCollection` mutation."""
-input DeleteCollectionInput
-  @join__type(graph: PG)
-{
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `Collection` to be deleted.
-  """
-  nodeId: ID!
-}
-
-"""The output of our delete `Collection` mutation."""
-type DeleteCollectionPayload
-  @join__type(graph: PG)
-{
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `Collection` that was deleted by this mutation."""
-  collection: Collection
-  deletedCollectionId: ID
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `Collection`. May be used by Relay 1."""
-  collectionEdge(
-    """The method to use when ordering `Collection`."""
-    orderBy: [CollectionsOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): CollectionsEdge
-}
-
 """All input for the `deleteVideoById` mutation."""
 input DeleteVideoByIdInput
   @join__type(graph: PG)
@@ -676,20 +563,61 @@ enum link__Purpose {
   EXECUTION
 }
 
+type MovieCollection implements Collection & Node
+  @join__implements(graph: PG, interface: "Collection")
+  @join__implements(graph: PG, interface: "Node")
+  @join__type(graph: PG, key: "id", extension: true)
+{
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  nodeId: ID!
+  id: String!
+  title: String!
+  type: String!
+  createdAt: Datetime
+
+  """Reads and enables pagination through a set of `Video`."""
+  videosByCollectionId(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: VideoCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: VideoFilter
+
+    """The method to use when ordering `Video`."""
+    orderBy: [VideosOrderBy!] = [PRIMARY_KEY_ASC]
+  ): VideosConnection!
+}
+
 """
 The root mutation type which contains root level fields which mutate data.
 """
 type Mutation
   @join__type(graph: PG)
 {
-  """Creates a single `Collection`."""
-  createCollection(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: CreateCollectionInput!
-  ): CreateCollectionPayload
-
   """Creates a single `Video`."""
   createVideo(
     """
@@ -697,24 +625,6 @@ type Mutation
     """
     input: CreateVideoInput!
   ): CreateVideoPayload
-
-  """
-  Updates a single `Collection` using its globally unique id and a patch.
-  """
-  updateCollection(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdateCollectionInput!
-  ): UpdateCollectionPayload
-
-  """Updates a single `Collection` using a unique key and a patch."""
-  updateCollectionById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdateCollectionByIdInput!
-  ): UpdateCollectionPayload
 
   """Updates a single `Video` using its globally unique id and a patch."""
   updateVideo(
@@ -731,22 +641,6 @@ type Mutation
     """
     input: UpdateVideoByIdInput!
   ): UpdateVideoPayload
-
-  """Deletes a single `Collection` using its globally unique id."""
-  deleteCollection(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeleteCollectionInput!
-  ): DeleteCollectionPayload
-
-  """Deletes a single `Collection` using a unique key."""
-  deleteCollectionById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeleteCollectionByIdInput!
-  ): DeleteCollectionPayload
 
   """Deletes a single `Video` using its globally unique id."""
   deleteVideo(
@@ -818,19 +712,24 @@ type Query implements Node
     nodeId: ID!
   ): Node @join__field(graph: PG)
 
-  """Get a single `Collection`."""
-  collectionById(id: String!): Collection @join__field(graph: PG)
-
   """Get a single `Video`."""
   videoById(id: String!): Video @join__field(graph: PG)
 
-  """Reads a single `Collection` using its globally unique `ID`."""
-  collection(
+  """Reads a single `MovieCollection` using its globally unique `ID`."""
+  movieCollection(
     """
-    The globally unique `ID` to be used in selecting a single `Collection`.
+    The globally unique `ID` to be used in selecting a single `MovieCollection`.
     """
     nodeId: ID!
-  ): Collection @join__field(graph: PG)
+  ): MovieCollection @join__field(graph: PG)
+
+  """Reads a single `SeriesCollection` using its globally unique `ID`."""
+  seriesCollection(
+    """
+    The globally unique `ID` to be used in selecting a single `SeriesCollection`.
+    """
+    nodeId: ID!
+  ): SeriesCollection @join__field(graph: PG)
 
   """Reads a single `Video` using its globally unique `ID`."""
   video(
@@ -905,6 +804,55 @@ type Query implements Node
     """The method to use when ordering `Video`."""
     orderBy: [VideosOrderBy!] = [PRIMARY_KEY_ASC]
   ): VideosConnection @join__field(graph: PG)
+}
+
+type SeriesCollection implements Collection & Node
+  @join__implements(graph: PG, interface: "Collection")
+  @join__implements(graph: PG, interface: "Node")
+  @join__type(graph: PG, key: "id", extension: true)
+{
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  nodeId: ID!
+  id: String!
+  title: String!
+  type: String!
+  createdAt: Datetime
+
+  """Reads and enables pagination through a set of `Video`."""
+  videosByCollectionId(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: VideoCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: VideoFilter
+
+    """The method to use when ordering `Video`."""
+    orderBy: [VideosOrderBy!] = [PRIMARY_KEY_ASC]
+  ): VideosConnection!
 }
 
 """
@@ -1039,69 +987,6 @@ input StringFilter
 
   """Greater than or equal to the specified value (case-insensitive)."""
   greaterThanOrEqualToInsensitive: String
-}
-
-"""All input for the `updateCollectionById` mutation."""
-input UpdateCollectionByIdInput
-  @join__type(graph: PG)
-{
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  id: String!
-
-  """
-  An object where the defined keys will be set on the `Collection` being updated.
-  """
-  collectionPatch: CollectionPatch!
-}
-
-"""All input for the `updateCollection` mutation."""
-input UpdateCollectionInput
-  @join__type(graph: PG)
-{
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `Collection` to be updated.
-  """
-  nodeId: ID!
-
-  """
-  An object where the defined keys will be set on the `Collection` being updated.
-  """
-  collectionPatch: CollectionPatch!
-}
-
-"""The output of our update `Collection` mutation."""
-type UpdateCollectionPayload
-  @join__type(graph: PG)
-{
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `Collection` that was updated by this mutation."""
-  collection: Collection
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `Collection`. May be used by Relay 1."""
-  collectionEdge(
-    """The method to use when ordering `Collection`."""
-    orderBy: [CollectionsOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): CollectionsEdge
 }
 
 """All input for the `updateVideoById` mutation."""

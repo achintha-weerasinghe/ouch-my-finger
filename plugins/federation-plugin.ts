@@ -1,4 +1,4 @@
-import { isObjectType, Kind, parse, printType, type ConstArgumentNode, type ConstDirectiveNode, type NameNode, type ObjectTypeDefinitionNode, type ObjectTypeExtensionNode, type SchemaExtensionNode, type StringValueNode } from "postgraphile/graphql";
+import { isInterfaceType, isObjectType, Kind, parse, printType, type ConstArgumentNode, type ConstDirectiveNode, type InterfaceTypeDefinitionNode, type InterfaceTypeExtensionNode, type NameNode, type ObjectTypeDefinitionNode, type ObjectTypeExtensionNode, type SchemaExtensionNode, type StringValueNode } from "postgraphile/graphql";
 
 export const FederationPlugin: GraphileConfig.Plugin = {
   name: 'FederationPlugin',
@@ -40,7 +40,38 @@ export const FederationPlugin: GraphileConfig.Plugin = {
 
         const types = build.getAllTypes();
         for (const [typeName, namedType] of Object.entries(types)) {
-          if (namedType && isObjectType(namedType) && ['Collection', 'Video'].includes(typeName)) {
+          // Add @key to interface entity
+          if (namedType && isInterfaceType(namedType) && typeName === 'Collection') {
+            if (!namedType.astNode) {
+              const parsed = parse(printType(namedType));
+              const definition = parsed.definitions.find(
+                (def): def is InterfaceTypeDefinitionNode =>
+                  def.kind === Kind.INTERFACE_TYPE_DEFINITION &&
+                  def.name.value === namedType.name,
+              );
+              if (definition) {
+                (namedType as any).astNode = definition;
+              }
+            }
+            const existingDirectives = [
+              ...(namedType.astNode?.directives ?? []),
+              ...((namedType.extensionASTNodes ?? []).flatMap((n) => n.directives ?? [])),
+            ];
+            const hasKey = existingDirectives.some((d) => d.name.value === 'key');
+            if (!hasKey) {
+              const keyExtension: InterfaceTypeExtensionNode = {
+                kind: Kind.INTERFACE_TYPE_EXTENSION,
+                name: Name(namedType.name),
+                directives: [Directive("key", { fields: StringValue("id") })],
+              };
+              namedType.extensionASTNodes = [
+                ...(namedType.extensionASTNodes ?? []),
+                keyExtension,
+              ];
+            }
+          }
+
+          if (namedType && isObjectType(namedType) && ['MovieCollection', 'SeriesCollection', 'Video'].includes(typeName)) {
             // Ensure we have a base AST definition; Apollo federations drops
             // types that only have extensions.
             if (!namedType.astNode) {

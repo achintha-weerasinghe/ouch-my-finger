@@ -63,7 +63,7 @@ async function startMockSubgraph() {
     extend schema
       @link(
         url: "https://specs.apollo.dev/federation/v2.7"
-        import: ["@key", "@external"]
+        import: ["@key", "@external", "@interfaceObject"]
       )
 
     extend type Query {
@@ -72,7 +72,7 @@ async function startMockSubgraph() {
     }
 
     # This subgraph only produces references; PostGraphile owns the fields.
-    extend type Collection @key(fields: "id") {
+    extend type Collection @key(fields: "id") @interfaceObject {
       id: String! @external
     }
 

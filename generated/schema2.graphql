@@ -20,19 +20,24 @@ type Query implements Node {
     nodeId: ID!
   ): Node
 
-  """Get a single `Collection`."""
-  collectionById(id: String!): Collection
-
   """Get a single `Video`."""
   videoById(id: String!): Video
 
-  """Reads a single `Collection` using its globally unique `ID`."""
-  collection(
+  """Reads a single `MovieCollection` using its globally unique `ID`."""
+  movieCollection(
     """
-    The globally unique `ID` to be used in selecting a single `Collection`.
+    The globally unique `ID` to be used in selecting a single `MovieCollection`.
     """
     nodeId: ID!
-  ): Collection
+  ): MovieCollection
+
+  """Reads a single `SeriesCollection` using its globally unique `ID`."""
+  seriesCollection(
+    """
+    The globally unique `ID` to be used in selecting a single `SeriesCollection`.
+    """
+    nodeId: ID!
+  ): SeriesCollection
 
   """Reads a single `Video` using its globally unique `ID`."""
   video(
@@ -117,13 +122,40 @@ interface Node {
   nodeId: ID!
 }
 
-type Collection implements Node {
+type Video implements Node {
   """
   A globally unique identifier. Can be used in various places throughout the system to identify this single value.
   """
   nodeId: ID!
   id: String!
   title: String!
+  collectionId: String
+  createdAt: Datetime
+
+  """Reads a single `Collection` that is related to this `Video`."""
+  collectionByCollectionId: Collection
+}
+
+extend type Video
+  @key(fields: "id")
+
+"""
+A point in time as described by the [ISO
+8601](https://en.wikipedia.org/wiki/ISO_8601) and, if it has a timezone, [RFC
+3339](https://datatracker.ietf.org/doc/html/rfc3339) standards. Input values
+that do not conform to both ISO 8601 and RFC 3339 may be coerced, which may lead
+to unexpected results.
+"""
+scalar Datetime
+
+interface Collection implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  nodeId: ID!
+  id: String!
+  title: String!
+  type: String!
   createdAt: Datetime
 
   """Reads and enables pagination through a set of `Video`."""
@@ -145,33 +177,11 @@ type Collection implements Node {
 
     """Read all values in the set after (below) this cursor."""
     after: Cursor
-
-    """
-    A condition to be used in determining which values should be returned by the collection.
-    """
-    condition: VideoCondition
-
-    """
-    A filter to be used in determining which values should be returned by the collection.
-    """
-    filter: VideoFilter
-
-    """The method to use when ordering `Video`."""
-    orderBy: [VideosOrderBy!] = [PRIMARY_KEY_ASC]
   ): VideosConnection!
 }
 
-extend type Collection
+extend interface Collection
   @key(fields: "id")
-
-"""
-A point in time as described by the [ISO
-8601](https://en.wikipedia.org/wiki/ISO_8601) and, if it has a timezone, [RFC
-3339](https://datatracker.ietf.org/doc/html/rfc3339) standards. Input values
-that do not conform to both ISO 8601 and RFC 3339 may be coerced, which may lead
-to unexpected results.
-"""
-scalar Datetime
 
 """A connection to a list of `Video` values."""
 type VideosConnection {
@@ -205,23 +215,6 @@ type VideosConnection {
     having: VideoHavingInput
   ): [VideoAggregates!]
 }
-
-type Video implements Node {
-  """
-  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
-  """
-  nodeId: ID!
-  id: String!
-  title: String!
-  collectionId: String
-  createdAt: Datetime
-
-  """Reads a single `Collection` that is related to this `Video`."""
-  collectionByCollectionId: Collection
-}
-
-extend type Video
-  @key(fields: "id")
 
 """A `Video` edge in the connection."""
 type VideosEdge {
@@ -349,53 +342,179 @@ input VideoHavingVariancePopulationInput {
   createdAt: HavingDatetimeFilter
 }
 
+"""A connection to a list of `Collection` values."""
+type CollectionsConnection {
+  """A list of `Collection` objects."""
+  nodes: [Collection]!
+
+  """
+  A list of edges which contains the `Collection` and cursor to aid in pagination.
+  """
+  edges: [CollectionsEdge]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """The count of *all* `Collection` you could get from the connection."""
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: CollectionAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """The method to use when grouping `Collection` for these aggregates."""
+    groupBy: [CollectionGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: CollectionHavingInput
+  ): [CollectionAggregates!]
+}
+
+"""A `Collection` edge in the connection."""
+type CollectionsEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `Collection` at the end of the edge."""
+  node: Collection
+}
+
+type CollectionAggregates {
+  keys: [String]
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: CollectionDistinctCountAggregates
+}
+
+type CollectionDistinctCountAggregates {
+  """Distinct count of id across the matching connection"""
+  id: BigInt
+
+  """Distinct count of title across the matching connection"""
+  title: BigInt
+
+  """Distinct count of type across the matching connection"""
+  type: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+}
+
+"""Grouping methods for `Collection` for usage during aggregation."""
+enum CollectionGroupBy {
+  TITLE
+  TYPE
+  CREATED_AT
+  CREATED_AT_TRUNCATED_TO_HOUR
+  CREATED_AT_TRUNCATED_TO_DAY
+}
+
+"""Conditions for `Collection` aggregates."""
+input CollectionHavingInput {
+  AND: [CollectionHavingInput!]
+  OR: [CollectionHavingInput!]
+  sum: CollectionHavingSumInput
+  distinctCount: CollectionHavingDistinctCountInput
+  min: CollectionHavingMinInput
+  max: CollectionHavingMaxInput
+  average: CollectionHavingAverageInput
+  stddevSample: CollectionHavingStddevSampleInput
+  stddevPopulation: CollectionHavingStddevPopulationInput
+  varianceSample: CollectionHavingVarianceSampleInput
+  variancePopulation: CollectionHavingVariancePopulationInput
+}
+
+input CollectionHavingSumInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input CollectionHavingDistinctCountInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input CollectionHavingMinInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input CollectionHavingMaxInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input CollectionHavingAverageInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input CollectionHavingStddevSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input CollectionHavingStddevPopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input CollectionHavingVarianceSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input CollectionHavingVariancePopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
 """
-A condition to be used against `Video` object types. All fields are tested for equality and combined with a logical ‘and.’
+A condition to be used against `Collection` object types. All fields are tested
+for equality and combined with a logical ‘and.’
 """
-input VideoCondition {
+input CollectionCondition {
   """Checks for equality with the object’s `id` field."""
   id: String
 
   """Checks for equality with the object’s `title` field."""
   title: String
 
-  """Checks for equality with the object’s `collectionId` field."""
-  collectionId: String
+  """Checks for equality with the object’s `type` field."""
+  type: String
 
   """Checks for equality with the object’s `createdAt` field."""
   createdAt: Datetime
 }
 
 """
-A filter to be used against `Video` object types. All fields are combined with a logical ‘and.’
+A filter to be used against `Collection` object types. All fields are combined with a logical ‘and.’
 """
-input VideoFilter {
+input CollectionFilter {
   """Filter by the object’s `id` field."""
   id: StringFilter
 
   """Filter by the object’s `title` field."""
   title: StringFilter
 
-  """Filter by the object’s `collectionId` field."""
-  collectionId: StringFilter
+  """Filter by the object’s `type` field."""
+  type: StringFilter
 
   """Filter by the object’s `createdAt` field."""
   createdAt: DatetimeFilter
 
-  """Filter by the object’s `collectionByCollectionId` relation."""
-  collectionByCollectionId: CollectionFilter
+  """Filter by the object’s `videosByCollectionId` relation."""
+  videosByCollectionId: CollectionToManyVideoFilter
 
-  """A related `collectionByCollectionId` exists."""
-  collectionByCollectionIdExists: Boolean
+  """Some related `videosByCollectionId` exist."""
+  videosByCollectionIdExist: Boolean
 
   """Checks for all expressions in this list."""
-  and: [VideoFilter!]
+  and: [CollectionFilter!]
 
   """Checks for any expressions in this list."""
-  or: [VideoFilter!]
+  or: [CollectionFilter!]
 
   """Negates the expression."""
-  not: VideoFilter
+  not: CollectionFilter
 }
 
 """
@@ -573,35 +692,6 @@ input DatetimeFilter {
 }
 
 """
-A filter to be used against `Collection` object types. All fields are combined with a logical ‘and.’
-"""
-input CollectionFilter {
-  """Filter by the object’s `id` field."""
-  id: StringFilter
-
-  """Filter by the object’s `title` field."""
-  title: StringFilter
-
-  """Filter by the object’s `createdAt` field."""
-  createdAt: DatetimeFilter
-
-  """Filter by the object’s `videosByCollectionId` relation."""
-  videosByCollectionId: CollectionToManyVideoFilter
-
-  """Some related `videosByCollectionId` exist."""
-  videosByCollectionIdExist: Boolean
-
-  """Checks for all expressions in this list."""
-  and: [CollectionFilter!]
-
-  """Checks for any expressions in this list."""
-  or: [CollectionFilter!]
-
-  """Negates the expression."""
-  not: CollectionFilter
-}
-
-"""
 A filter to be used against many `Video` object types. All fields are combined with a logical ‘and.’
 """
 input CollectionToManyVideoFilter {
@@ -622,6 +712,38 @@ input CollectionToManyVideoFilter {
 
   """Aggregates across related `Video` match the filter criteria."""
   aggregates: VideoAggregatesFilter
+}
+
+"""
+A filter to be used against `Video` object types. All fields are combined with a logical ‘and.’
+"""
+input VideoFilter {
+  """Filter by the object’s `id` field."""
+  id: StringFilter
+
+  """Filter by the object’s `title` field."""
+  title: StringFilter
+
+  """Filter by the object’s `collectionId` field."""
+  collectionId: StringFilter
+
+  """Filter by the object’s `createdAt` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s `collectionByCollectionId` relation."""
+  collectionByCollectionId: CollectionFilter
+
+  """A related `collectionByCollectionId` exists."""
+  collectionByCollectionIdExists: Boolean
+
+  """Checks for all expressions in this list."""
+  and: [VideoFilter!]
+
+  """Checks for any expressions in this list."""
+  or: [VideoFilter!]
+
+  """Negates the expression."""
+  not: VideoFilter
 }
 
 """A filter to be used against aggregates of `Video` object types."""
@@ -684,157 +806,6 @@ input BigIntFilter {
   greaterThanOrEqualTo: BigInt
 }
 
-"""Methods to use when ordering `Video`."""
-enum VideosOrderBy {
-  NATURAL
-  PRIMARY_KEY_ASC
-  PRIMARY_KEY_DESC
-  ID_ASC
-  ID_DESC
-  TITLE_ASC
-  TITLE_DESC
-  COLLECTION_ID_ASC
-  COLLECTION_ID_DESC
-  CREATED_AT_ASC
-  CREATED_AT_DESC
-}
-
-"""A connection to a list of `Collection` values."""
-type CollectionsConnection {
-  """A list of `Collection` objects."""
-  nodes: [Collection]!
-
-  """
-  A list of edges which contains the `Collection` and cursor to aid in pagination.
-  """
-  edges: [CollectionsEdge]!
-
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-
-  """The count of *all* `Collection` you could get from the connection."""
-  totalCount: Int!
-
-  """
-  Aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  aggregates: CollectionAggregates
-
-  """
-  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  groupedAggregates(
-    """The method to use when grouping `Collection` for these aggregates."""
-    groupBy: [CollectionGroupBy!]!
-
-    """Conditions on the grouped aggregates."""
-    having: CollectionHavingInput
-  ): [CollectionAggregates!]
-}
-
-"""A `Collection` edge in the connection."""
-type CollectionsEdge {
-  """A cursor for use in pagination."""
-  cursor: Cursor
-
-  """The `Collection` at the end of the edge."""
-  node: Collection
-}
-
-type CollectionAggregates {
-  keys: [String]
-
-  """
-  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  distinctCount: CollectionDistinctCountAggregates
-}
-
-type CollectionDistinctCountAggregates {
-  """Distinct count of id across the matching connection"""
-  id: BigInt
-
-  """Distinct count of title across the matching connection"""
-  title: BigInt
-
-  """Distinct count of createdAt across the matching connection"""
-  createdAt: BigInt
-}
-
-"""Grouping methods for `Collection` for usage during aggregation."""
-enum CollectionGroupBy {
-  TITLE
-  CREATED_AT
-  CREATED_AT_TRUNCATED_TO_HOUR
-  CREATED_AT_TRUNCATED_TO_DAY
-}
-
-"""Conditions for `Collection` aggregates."""
-input CollectionHavingInput {
-  AND: [CollectionHavingInput!]
-  OR: [CollectionHavingInput!]
-  sum: CollectionHavingSumInput
-  distinctCount: CollectionHavingDistinctCountInput
-  min: CollectionHavingMinInput
-  max: CollectionHavingMaxInput
-  average: CollectionHavingAverageInput
-  stddevSample: CollectionHavingStddevSampleInput
-  stddevPopulation: CollectionHavingStddevPopulationInput
-  varianceSample: CollectionHavingVarianceSampleInput
-  variancePopulation: CollectionHavingVariancePopulationInput
-}
-
-input CollectionHavingSumInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input CollectionHavingDistinctCountInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input CollectionHavingMinInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input CollectionHavingMaxInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input CollectionHavingAverageInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input CollectionHavingStddevSampleInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input CollectionHavingStddevPopulationInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input CollectionHavingVarianceSampleInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input CollectionHavingVariancePopulationInput {
-  createdAt: HavingDatetimeFilter
-}
-
-"""
-A condition to be used against `Collection` object types. All fields are tested
-for equality and combined with a logical ‘and.’
-"""
-input CollectionCondition {
-  """Checks for equality with the object’s `id` field."""
-  id: String
-
-  """Checks for equality with the object’s `title` field."""
-  title: String
-
-  """Checks for equality with the object’s `createdAt` field."""
-  createdAt: Datetime
-}
-
 """Methods to use when ordering `Collection`."""
 enum CollectionsOrderBy {
   NATURAL
@@ -844,6 +815,8 @@ enum CollectionsOrderBy {
   ID_DESC
   TITLE_ASC
   TITLE_DESC
+  TYPE_ASC
+  TYPE_DESC
   CREATED_AT_ASC
   CREATED_AT_DESC
   VIDEOS_BY_COLLECTION_ID_COUNT_ASC
@@ -859,17 +832,41 @@ enum CollectionsOrderBy {
 }
 
 """
+A condition to be used against `Video` object types. All fields are tested for equality and combined with a logical ‘and.’
+"""
+input VideoCondition {
+  """Checks for equality with the object’s `id` field."""
+  id: String
+
+  """Checks for equality with the object’s `title` field."""
+  title: String
+
+  """Checks for equality with the object’s `collectionId` field."""
+  collectionId: String
+
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: Datetime
+}
+
+"""Methods to use when ordering `Video`."""
+enum VideosOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ID_ASC
+  ID_DESC
+  TITLE_ASC
+  TITLE_DESC
+  COLLECTION_ID_ASC
+  COLLECTION_ID_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+}
+
+"""
 The root mutation type which contains root level fields which mutate data.
 """
 type Mutation {
-  """Creates a single `Collection`."""
-  createCollection(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: CreateCollectionInput!
-  ): CreateCollectionPayload
-
   """Creates a single `Video`."""
   createVideo(
     """
@@ -877,24 +874,6 @@ type Mutation {
     """
     input: CreateVideoInput!
   ): CreateVideoPayload
-
-  """
-  Updates a single `Collection` using its globally unique id and a patch.
-  """
-  updateCollection(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdateCollectionInput!
-  ): UpdateCollectionPayload
-
-  """Updates a single `Collection` using a unique key and a patch."""
-  updateCollectionById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdateCollectionByIdInput!
-  ): UpdateCollectionPayload
 
   """Updates a single `Video` using its globally unique id and a patch."""
   updateVideo(
@@ -912,22 +891,6 @@ type Mutation {
     input: UpdateVideoByIdInput!
   ): UpdateVideoPayload
 
-  """Deletes a single `Collection` using its globally unique id."""
-  deleteCollection(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeleteCollectionInput!
-  ): DeleteCollectionPayload
-
-  """Deletes a single `Collection` using a unique key."""
-  deleteCollectionById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeleteCollectionByIdInput!
-  ): DeleteCollectionPayload
-
   """Deletes a single `Video` using its globally unique id."""
   deleteVideo(
     """
@@ -943,48 +906,6 @@ type Mutation {
     """
     input: DeleteVideoByIdInput!
   ): DeleteVideoPayload
-}
-
-"""The output of our create `Collection` mutation."""
-type CreateCollectionPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `Collection` that was created by this mutation."""
-  collection: Collection
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `Collection`. May be used by Relay 1."""
-  collectionEdge(
-    """The method to use when ordering `Collection`."""
-    orderBy: [CollectionsOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): CollectionsEdge
-}
-
-"""All input for the create `Collection` mutation."""
-input CreateCollectionInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """The `Collection` to be created by this mutation."""
-  collection: CollectionInput!
-}
-
-"""An input for mutations affecting `Collection`"""
-input CollectionInput {
-  id: String
-  title: String!
-  createdAt: Datetime
 }
 
 """The output of our create `Video` mutation."""
@@ -1031,72 +952,6 @@ input VideoInput {
   title: String!
   collectionId: String
   createdAt: Datetime
-}
-
-"""The output of our update `Collection` mutation."""
-type UpdateCollectionPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `Collection` that was updated by this mutation."""
-  collection: Collection
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `Collection`. May be used by Relay 1."""
-  collectionEdge(
-    """The method to use when ordering `Collection`."""
-    orderBy: [CollectionsOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): CollectionsEdge
-}
-
-"""All input for the `updateCollection` mutation."""
-input UpdateCollectionInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `Collection` to be updated.
-  """
-  nodeId: ID!
-
-  """
-  An object where the defined keys will be set on the `Collection` being updated.
-  """
-  collectionPatch: CollectionPatch!
-}
-
-"""
-Represents an update to a `Collection`. Fields that are set will be updated.
-"""
-input CollectionPatch {
-  id: String
-  title: String
-  createdAt: Datetime
-}
-
-"""All input for the `updateCollectionById` mutation."""
-input UpdateCollectionByIdInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  id: String!
-
-  """
-  An object where the defined keys will be set on the `Collection` being updated.
-  """
-  collectionPatch: CollectionPatch!
 }
 
 """The output of our update `Video` mutation."""
@@ -1169,54 +1024,6 @@ input UpdateVideoByIdInput {
   videoPatch: VideoPatch!
 }
 
-"""The output of our delete `Collection` mutation."""
-type DeleteCollectionPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `Collection` that was deleted by this mutation."""
-  collection: Collection
-  deletedCollectionId: ID
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `Collection`. May be used by Relay 1."""
-  collectionEdge(
-    """The method to use when ordering `Collection`."""
-    orderBy: [CollectionsOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): CollectionsEdge
-}
-
-"""All input for the `deleteCollection` mutation."""
-input DeleteCollectionInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `Collection` to be deleted.
-  """
-  nodeId: ID!
-}
-
-"""All input for the `deleteCollectionById` mutation."""
-input DeleteCollectionByIdInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  id: String!
-}
-
 """The output of our delete `Video` mutation."""
 type DeleteVideoPayload {
   """
@@ -1267,3 +1074,99 @@ input DeleteVideoByIdInput {
   clientMutationId: String
   id: String!
 }
+
+type MovieCollection implements Collection & Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  nodeId: ID!
+  id: String!
+  title: String!
+  type: String!
+  createdAt: Datetime
+
+  """Reads and enables pagination through a set of `Video`."""
+  videosByCollectionId(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: VideoCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: VideoFilter
+
+    """The method to use when ordering `Video`."""
+    orderBy: [VideosOrderBy!] = [PRIMARY_KEY_ASC]
+  ): VideosConnection!
+}
+
+extend type MovieCollection
+  @key(fields: "id")
+
+type SeriesCollection implements Collection & Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  nodeId: ID!
+  id: String!
+  title: String!
+  type: String!
+  createdAt: Datetime
+
+  """Reads and enables pagination through a set of `Video`."""
+  videosByCollectionId(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: VideoCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: VideoFilter
+
+    """The method to use when ordering `Video`."""
+    orderBy: [VideosOrderBy!] = [PRIMARY_KEY_ASC]
+  ): VideosConnection!
+}
+
+extend type SeriesCollection
+  @key(fields: "id")

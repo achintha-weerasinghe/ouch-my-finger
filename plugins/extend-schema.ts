@@ -1,7 +1,8 @@
-import { constant, get, lambda, Step } from "postgraphile/grafast";
+import { condition, constant, get, lambda, Step } from "postgraphile/grafast";
 import { extendSchema, gql } from "postgraphile/utils";
 import { printSubgraphSchema } from "@apollo/subgraph";
 import { GraphQLScalarType, Kind, valueFromASTUntyped } from "postgraphile/graphql";
+import { conditionalReturn } from "./steps/conditional-return-step.ts";
 
 
 export const ExtendSchemaPlugin = extendSchema((build) => {
@@ -14,7 +15,7 @@ export const ExtendSchemaPlugin = extendSchema((build) => {
             Basic scalar used by federation to shuttle arbitrary representation objects.
             """
             scalar _Any
-            union _Entity = Collection | Video
+            union _Entity = MovieCollection | SeriesCollection | Video
             type _Service {
                 sdl: String!
             }
@@ -35,14 +36,19 @@ export const ExtendSchemaPlugin = extendSchema((build) => {
         unions: {
             _Entity: {
                 planType($specifier: Step<{ __typename: string; id: string }>) {
-                    const $type = get($specifier, '__typename');
+                    const $type = conditionalReturn(
+                        condition('===', get($specifier, '__typename'), constant('Collection')),
+                        collections.get({ id: get($specifier, 'id') }).get('type'),
+                        get($specifier, '__typename'),
+                    );
                     const $__typename = lambda($type, entityTypeName, true);
 
                     return {
                         $__typename,
                         planForType(t) {
                             switch (t.name) {
-                                case 'Collection': {
+                                case 'MovieCollection': 
+                                case 'SeriesCollection': {
                                     return collections.get({ id: get($specifier, 'id') });
                                 }
                                 case 'Video': {
@@ -84,7 +90,8 @@ export const ExtendSchemaPlugin = extendSchema((build) => {
 function entityTypeName(type: unknown): string | null {
     return (
         {
-            Collection: 'Collection',
+            movie: 'MovieCollection',
+            series: 'SeriesCollection',
             Video: 'Video',
         }[type as string] ?? null
     );
